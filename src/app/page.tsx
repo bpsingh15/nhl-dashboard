@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 export default function HomePage() {
   const [players, setPlayers] = useState<any[]>([]);
+  const [teams, setTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -11,7 +12,7 @@ export default function HomePage() {
       try {
         const res = await fetch("/api/top-scorers");
         const json = await res.json();
-        setPlayers(json.data);
+        setPlayers(json.topScorers || []); // ✅ always set to array
       } catch (err) {
         console.error("Failed to fetch players:", err);
       } finally {
@@ -19,6 +20,15 @@ export default function HomePage() {
       }
     }
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    async function fetchTeams() {
+      const res = await fetch("/api/teams");
+      const json = await res.json();
+      setTeams(json.teams || []);
+    }
+    fetchTeams();
   }, []);
 
   if (loading) return <p className="p-4">Loading top scorers...</p>;
@@ -32,6 +42,15 @@ export default function HomePage() {
         {players.map((p, i) => (
           <li key={i} className="border p-4 rounded-lg">
             <strong>{p.name}</strong> — {p.goals} G / {p.assists} A
+          </li>
+        ))}
+      </ul>
+
+      <h2 className="text-3xl font-bold mt-10 mb-4">🏒 NHL Teams</h2>
+      <ul className="space-y-2">
+        {teams.map((t, i) => (
+          <li key={i} className="border p-4 rounded-lg">
+            <strong>{t.name}</strong> — {t.division}, {t.conference}
           </li>
         ))}
       </ul>
