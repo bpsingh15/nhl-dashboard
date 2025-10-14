@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 export default function HomePage() {
   const [players, setPlayers] = useState<any[]>([]);
-  const [teams, setTeams] = useState<any[]>([]);
+  const [standings, setStandings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,12 +23,16 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    async function fetchTeams() {
-      const res = await fetch("/api/teams");
-      const json = await res.json();
-      setTeams(json.teams || []);
+    async function fetchStandings() {
+      try {
+        const res = await fetch("/api/standings");
+        const json = await res.json();
+        setStandings(json.teams || []);
+      } catch (err) {
+        console.error("Failed to fetch standings:", err);
+      }
     }
-    fetchTeams();
+    fetchStandings();
   }, []);
 
   if (loading) return <p className="p-4">Loading top scorers...</p>;
@@ -46,11 +50,14 @@ export default function HomePage() {
         ))}
       </ul>
 
-      <h2 className="text-3xl font-bold mt-10 mb-4">🏒 NHL Teams</h2>
+      <h2 className="text-3xl font-bold mt-10 mb-4">
+        🏆 Top 10 Teams (By Points)
+      </h2>
       <ul className="space-y-2">
-        {teams.map((t, i) => (
+        {standings.map((t, i) => (
           <li key={i} className="border p-4 rounded-lg">
-            <strong>{t.name}</strong> — {t.division}, {t.conference}
+            <strong>{t.name}</strong> — {t.points} pts ({t.wins}-{t.losses}-
+            {t.otLosses})
           </li>
         ))}
       </ul>
