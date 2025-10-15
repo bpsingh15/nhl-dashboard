@@ -39,7 +39,7 @@ export async function GET() {
     return NextResponse.json({
       status: "success",
       lastUpdated: new Date().toISOString(),
-      teams: sorted.slice(0, 10), // top 10 for now
+      teams: sorted, // top 10 for now
     });
   } catch (err: any) {
     console.error("Error fetching standings:", err);

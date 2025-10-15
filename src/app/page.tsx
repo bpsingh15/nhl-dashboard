@@ -52,8 +52,8 @@ export default function HomePage() {
     );
 
     return {
-      east: east.slice(0, 5),
-      west: west.slice(0, 5),
+      east: east,
+      west: west,
     };
   };
 
@@ -68,7 +68,7 @@ export default function HomePage() {
     // Sort teams within each division by points
     Object.keys(divisions).forEach((div) => {
       divisions[div].sort((a, b) => b.points - a.points);
-      divisions[div] = divisions[div].slice(0, 3); // top 3 per division
+      divisions[div] = divisions[div]; // top 3 per division
     });
 
     return divisions;
