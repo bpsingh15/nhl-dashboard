@@ -10,7 +10,6 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>("league");
 
-  // 🎯 Fetch Top Scorers (mock or real)
   useEffect(() => {
     async function fetchData() {
       try {
@@ -26,7 +25,6 @@ export default function HomePage() {
     fetchData();
   }, []);
 
-  // 🎯 Fetch Standings (real data)
   useEffect(() => {
     async function fetchStandings() {
       try {
@@ -42,21 +40,18 @@ export default function HomePage() {
 
   if (loading) return <p className="p-4">Loading dashboard...</p>;
 
-  // 🧮 Helper functions
+  // 🧮 Group by conference
   const getConferenceStandings = () => {
-    const east = standings.filter((t) =>
-      t.conference.toLowerCase().includes("east")
-    );
-    const west = standings.filter((t) =>
-      t.conference.toLowerCase().includes("west")
-    );
-
-    return {
-      east: east,
-      west: west,
-    };
+    const east = standings
+      .filter((t) => t.conference?.toLowerCase().includes("east"))
+      .sort((a, b) => b.points - a.points);
+    const west = standings
+      .filter((t) => t.conference?.toLowerCase().includes("west"))
+      .sort((a, b) => b.points - a.points);
+    return { east, west };
   };
 
+  // 🧮 Group by division
   const getDivisionStandings = () => {
     const divisions: Record<string, any[]> = {};
     standings.forEach((team) => {
@@ -65,10 +60,8 @@ export default function HomePage() {
       divisions[div].push(team);
     });
 
-    // Sort teams within each division by points
     Object.keys(divisions).forEach((div) => {
       divisions[div].sort((a, b) => b.points - a.points);
-      divisions[div] = divisions[div]; // top 3 per division
     });
 
     return divisions;
@@ -77,6 +70,7 @@ export default function HomePage() {
   const { east, west } = getConferenceStandings();
   const divisions = getDivisionStandings();
 
+  // 🔁 Button cycle logic
   const cycleView = () => {
     setViewMode((prev) =>
       prev === "league"
@@ -124,9 +118,9 @@ export default function HomePage() {
 
       {/* 🧮 League View */}
       {viewMode === "league" && (
-        <ul className="space-y-2">
+        <ul className="space-y-2 max-h-[80vh] overflow-y-auto border rounded-lg p-2">
           {standings.map((t, i) => (
-            <li key={i} className="border p-4 rounded-lg">
+            <li key={i} className="border p-3 rounded-md">
               <strong>
                 {i + 1}. {t.name}
               </strong>{" "}
@@ -136,16 +130,16 @@ export default function HomePage() {
         </ul>
       )}
 
-      {/* Conference View */}
+      {/* 🧮 Conference View */}
       {viewMode === "conference" && (
         <div className="grid md:grid-cols-2 gap-8">
           <div>
             <h3 className="text-2xl font-semibold mb-2">
               🌅 Eastern Conference
             </h3>
-            <ul className="space-y-2">
+            <ul className="space-y-2 border rounded-lg p-2 max-h-[80vh] overflow-y-auto">
               {east.map((t, i) => (
-                <li key={i} className="border p-4 rounded-lg">
+                <li key={i} className="border p-3 rounded-md">
                   <strong>
                     {i + 1}. {t.name}
                   </strong>{" "}
@@ -159,9 +153,9 @@ export default function HomePage() {
             <h3 className="text-2xl font-semibold mb-2">
               🌄 Western Conference
             </h3>
-            <ul className="space-y-2">
+            <ul className="space-y-2 border rounded-lg p-2 max-h-[80vh] overflow-y-auto">
               {west.map((t, i) => (
-                <li key={i} className="border p-4 rounded-lg">
+                <li key={i} className="border p-3 rounded-md">
                   <strong>
                     {i + 1}. {t.name}
                   </strong>{" "}
@@ -173,15 +167,15 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Division View */}
+      {/* 🧮 Division View */}
       {viewMode === "division" && (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {Object.entries(divisions).map(([division, teams]) => (
             <div key={division}>
               <h3 className="text-2xl font-semibold mb-2">{division}</h3>
-              <ul className="space-y-2">
+              <ul className="space-y-2 border rounded-lg p-2 max-h-[80vh] overflow-y-auto">
                 {teams.map((t, i) => (
-                  <li key={i} className="border p-4 rounded-lg">
+                  <li key={i} className="border p-3 rounded-md">
                     <strong>
                       {i + 1}. {t.name}
                     </strong>{" "}
