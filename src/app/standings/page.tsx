@@ -11,45 +11,15 @@ export default function StandingsPage() {
 
   useEffect(() => {
     async function fetchStandings() {
-      const res = await fetch("/api/standings");
+      const res = await fetch(`/api/standings?view=${viewMode}`);
       const json = await res.json();
       setStandings(json.teams || []);
       setLoading(false);
     }
     fetchStandings();
-  }, []);
+  }, [viewMode]); // 👈 re-fetch each time view changes
 
-  if (loading) return <p className="p-4">Loading standings...</p>;
-
-  // Grouping Helpers
-  const getConferenceStandings = () => {
-    const east = standings.filter((t) =>
-      t.conference?.toLowerCase().includes("east")
-    );
-    const west = standings.filter((t) =>
-      t.conference?.toLowerCase().includes("west")
-    );
-    return {
-      east: east.sort((a, b) => b.points - a.points),
-      west: west.sort((a, b) => b.points - a.points),
-    };
-  };
-
-  const getDivisionStandings = () => {
-    const divisions: Record<string, any[]> = {};
-    standings.forEach((t) => {
-      const div = t.division || "Unknown Division";
-      if (!divisions[div]) divisions[div] = [];
-      divisions[div].push(t);
-    });
-    Object.keys(divisions).forEach((d) =>
-      divisions[d].sort((a, b) => b.points - a.points)
-    );
-    return divisions;
-  };
-
-  const { east, west } = getConferenceStandings();
-  const divisions = getDivisionStandings();
+  if (loading) return <p>Loading standings...</p>;
 
   const cycleView = () => {
     setViewMode((prev) =>
@@ -62,9 +32,9 @@ export default function StandingsPage() {
   };
 
   return (
-    <div>
+    <div className="bg-[#1B1B3A] p-6 rounded-xl shadow-md">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">
+        <h1 className="text-2xl font-bold">
           {viewMode === "league"
             ? "🏆 League Standings"
             : viewMode === "conference"
@@ -83,69 +53,16 @@ export default function StandingsPage() {
         </button>
       </div>
 
-      {viewMode === "league" && (
-        <ul className="space-y-2">
-          {standings.map((t, i) => (
-            <li key={i} className="border border-gray-700 p-4 rounded-lg">
-              <strong>
-                {i + 1}. {t.name}
-              </strong>{" "}
-              — {t.points} pts
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {viewMode === "conference" && (
-        <div className="grid md:grid-cols-2 gap-8">
-          <div>
-            <h2 className="text-2xl mb-2">🌅 Eastern Conference</h2>
-            <ul className="space-y-2">
-              {east.map((t, i) => (
-                <li key={i} className="border border-gray-700 p-4 rounded-lg">
-                  <strong>
-                    {i + 1}. {t.name}
-                  </strong>{" "}
-                  — {t.points} pts
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h2 className="text-2xl mb-2">🌄 Western Conference</h2>
-            <ul className="space-y-2">
-              {west.map((t, i) => (
-                <li key={i} className="border border-gray-700 p-4 rounded-lg">
-                  <strong>
-                    {i + 1}. {t.name}
-                  </strong>{" "}
-                  — {t.points} pts
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
-
-      {viewMode === "division" && (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {Object.entries(divisions).map(([division, teams]) => (
-            <div key={division}>
-              <h2 className="text-2xl mb-2">{division}</h2>
-              <ul className="space-y-2">
-                {teams.map((t, i) => (
-                  <li key={i} className="border border-gray-700 p-4 rounded-lg">
-                    <strong>
-                      {i + 1}. {t.name}
-                    </strong>{" "}
-                    — {t.points} pts
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      )}
+      <ul className="space-y-2">
+        {standings.map((t, i) => (
+          <li key={i} className="border border-gray-700 p-3 rounded-lg">
+            <strong>
+              {i + 1}. {t.name}
+            </strong>{" "}
+            — {t.points} pts
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
