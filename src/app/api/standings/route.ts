@@ -11,45 +11,74 @@ export async function GET(req: Request) {
       `${baseUrl}/seasons/2025/REG/standings.json?api_key=${apiKey}`,
       { next: { revalidate: 21600 } }
     );
+
     if (!res.ok) throw new Error("Failed to fetch standings");
     const data = await res.json();
 
-    const allTeams: any[] = [];
-    data.conferences?.forEach((conf: any) => {
-      conf.divisions?.forEach((div: any) => {
-        div.teams?.forEach((team: any) => {
-          allTeams.push({
-            name: `${team.market} ${team.name}`,
-            conference: conf.name,
-            division: div.name,
-            wins: team.wins,
-            losses: team.losses,
-            otLosses: team.overtime_losses,
-            points: team.points,
+    // Helper to normalize teams
+    const normalizeTeam = (team: any, confName: string, divName: string) => ({
+      id: team.id,
+      name: `${team.market} ${team.name}`,
+      conference: confName,
+      division: divName,
+      gamesPlayed: team.games_played,
+      wins: team.wins,
+      losses: team.losses,
+      otLosses: team.overtime_losses,
+      points: team.points,
+      goalsFor: team.goals_for,
+      goalsAgainst: team.goals_against,
+      goalDiff: team.goals_for - team.goals_against,
+      streak: team.streak?.length || 0,
+      streakType: team.streak?.type || "none",
+    });
+
+    // Parse based on requested view
+    let output: any[] = [];
+
+    if (view === "league") {
+      // Flatten all teams
+      data.conferences?.forEach((conf: any) => {
+        conf.divisions?.forEach((div: any) => {
+          div.teams?.forEach((team: any) => {
+            output.push(normalizeTeam(team, conf.name, div.name));
           });
         });
       });
-    });
-
-    // 🪄 Simulate “view mode” filters (for UX testing)
-    let filteredTeams = [...allTeams];
-
-    if (view === "conference") {
-      // Top 3 per conference (mocked filter)
-      filteredTeams = allTeams
-        .filter((t) => t.conference === "Eastern" || t.conference === "Western")
-        .slice(0, 6);
+    } else if (view === "conference") {
+      // Group by conference
+      output = data.conferences?.map((conf: any) => ({
+        name: conf.name,
+        divisions: conf.divisions?.map((div: any) => ({
+          name: div.name,
+          teams: div.teams?.map((team: any) =>
+            normalizeTeam(team, conf.name, div.name)
+          ),
+        })),
+      }));
     } else if (view === "division") {
-      // Top 2 per division (mocked filter)
-      filteredTeams = allTeams.slice(0, 8);
-    }
+      // Group by division (flatten across all conferences)
+      const divisions: Record<string, any[]> = {};
 
-    const sorted = filteredTeams.sort((a, b) => b.points - a.points);
+      data.conferences?.forEach((conf: any) => {
+        conf.divisions?.forEach((div: any) => {
+          if (!divisions[div.name]) divisions[div.name] = [];
+          div.teams?.forEach((team: any) => {
+            divisions[div.name].push(normalizeTeam(team, conf.name, div.name));
+          });
+        });
+      });
+
+      output = Object.entries(divisions).map(([name, teams]) => ({
+        name,
+        teams: (teams as any[]).sort((a, b) => b.points - a.points),
+      }));
+    }
 
     return NextResponse.json({
       status: "success",
       view,
-      teams: sorted,
+      standings: output,
     });
   } catch (err: any) {
     console.error("Error fetching standings:", err);
