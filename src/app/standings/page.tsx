@@ -96,29 +96,78 @@ export default function StandingsPage() {
         </table>
       )}
 
+      {viewMode === "conference" &&
+        data.map((conf: any) => (
+          <div key={conf.name} className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">{conf.name}</h2>
+
+            {conf.divisions?.map((div: any) => (
+              <div key={div.name} className="mb-6">
+                <h3 className="text-lg font-medium mb-2 pl-2 border-l-4 border-blue-500">
+                  {div.name}
+                </h3>
+
+                <table className="w-full text-left border-collapse mb-4">
+                  <thead>
+                    <tr className="border-b border-gray-600">
+                      <th className="py-2">Rank</th>
+                      <th>Team</th>
+                      <th>GP</th>
+                      <th>W</th>
+                      <th>L</th>
+                      <th>OT</th>
+                      <th>PTS</th>
+                      <th>GF</th>
+                      <th>GA</th>
+                      <th>DIFF</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {div.teams?.map((team: any, i: number) => (
+                      <tr
+                        key={team.id || i}
+                        className="border-b border-gray-700"
+                      >
+                        <td className="py-2">{i + 1}</td>
+                        <td>{team.name}</td>
+                        <td>{team.gamesPlayed}</td>
+                        <td>{team.wins}</td>
+                        <td>{team.losses}</td>
+                        <td>{team.otLosses}</td>
+                        <td className="font-bold">{team.points}</td>
+                        <td>{team.goalsFor}</td>
+                        <td>{team.goalsAgainst}</td>
+                        <td
+                          className={
+                            team.goalDiff > 0
+                              ? "text-green-400"
+                              : team.goalDiff < 0
+                              ? "text-red-400"
+                              : "text-gray-300"
+                          }
+                        >
+                          {team.goalDiff > 0 ? "+" : ""}
+                          {team.goalDiff}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ))}
+          </div>
+        ))}
+
       {viewMode !== "league" &&
         data.map((group: any) => (
           <div key={group.name} className="mb-8">
             <h2 className="text-xl font-semibold mb-2">{group.name}</h2>
             <table className="w-full text-left border-collapse mb-4">
-              <thead>
-                <tr className="border-b border-gray-600">
-                  <th className="py-2">Rank</th>
-                  <th>Team</th>
-                  <th>GP</th>
-                  <th>W</th>
-                  <th>L</th>
-                  <th>OT</th>
-                  <th>PTS</th>
-                  <th>GF</th>
-                  <th>GA</th>
-                  <th>DIFF</th>
-                </tr>
-              </thead>
+              {/* same table header & body as before */}
               <tbody>
                 {group.teams?.map((team: any, i: number) => (
-                  <tr key={team.id || i} className="border-b border-gray-700">
-                    <td className="py-2">{i + 1}</td>
+                  <tr key={team.id || i}>
+                    <td>{i + 1}</td>
                     <td>{team.name}</td>
                     <td>{team.gamesPlayed}</td>
                     <td>{team.wins}</td>
@@ -127,18 +176,7 @@ export default function StandingsPage() {
                     <td className="font-bold">{team.points}</td>
                     <td>{team.goalsFor}</td>
                     <td>{team.goalsAgainst}</td>
-                    <td
-                      className={
-                        team.goalDiff > 0
-                          ? "text-green-400"
-                          : team.goalDiff < 0
-                          ? "text-red-400"
-                          : "text-gray-300"
-                      }
-                    >
-                      {team.goalDiff > 0 ? "+" : ""}
-                      {team.goalDiff}
-                    </td>
+                    <td>{team.goalDiff}</td>
                   </tr>
                 ))}
               </tbody>

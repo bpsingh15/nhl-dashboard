@@ -46,16 +46,24 @@ export async function GET(req: Request) {
         });
       });
     } else if (view === "conference") {
-      // Group by conference
-      output = data.conferences?.map((conf: any) => ({
-        name: conf.name,
-        divisions: conf.divisions?.map((div: any) => ({
-          name: div.name,
-          teams: div.teams?.map((team: any) =>
-            normalizeTeam(team, conf.name, div.name)
-          ),
-        })),
-      }));
+      // Group all teams under each conference (combine divisions)
+      output = data.conferences?.map((conf: any) => {
+        const allTeams: any[] = [];
+
+        conf.divisions?.forEach((div: any) => {
+          div.teams?.forEach((team: any) => {
+            allTeams.push(normalizeTeam(team, conf.name, div.name));
+          });
+        });
+
+        // Sort by points (highest first)
+        allTeams.sort((a, b) => b.points - a.points);
+
+        return {
+          name: conf.name,
+          teams: allTeams,
+        };
+      });
     } else if (view === "division") {
       // Group by division (flatten across all conferences)
       const divisions: Record<string, any[]> = {};
